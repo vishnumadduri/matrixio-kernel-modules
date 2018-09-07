@@ -10,17 +10,21 @@ obj-m += matrixio-env.o
 obj-m += matrixio-imu.o
 obj-m += matrixio-regmap.o
 
+SRC := $(shell pwd)
+
+
 all:	matrixio.dtbo
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+	$(MAKE) -C $(KERNEL_SRC) M=$(SRC) modules
 
 matrixio.dtbo: matrixio-overlay.dts
 	$(DTC) -W no-unit_address_vs_reg -@ -I dts -O dtb -o matrixio.dtbo matrixio-overlay.dts
 
-install: matrixio.dtbo
-	sudo cp matrixio.dtbo /boot/overlays
-	sudo cp matrixio*.ko /lib/modules/$(shell uname -r)/kernel/drivers/mfd
-	sudo depmod -a
+
+modules_install:
+        cp matrixio.dtbo /boot/overlays
+	$(MAKE) -C $(KERNEL_SRC) M=$(SRC) modules_install
+
 
 clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
-	rm *.dtbo
+	$(MAKE) -C $(KERNEL_SRC) M=$(SRC) clean
+	rm -f *.dtbo
